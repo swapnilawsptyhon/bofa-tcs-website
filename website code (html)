@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BOFATCS Cloud | AWS at $0.12/hr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neon: '#39ff14',
+                        vibrant: '#ff007f',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_APP.appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP_ID",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // ---------- AUTH FUNCTIONS ----------
+        window.handleSignUp = (email, pass, first, last) => {
+            createUserWithEmailAndPassword(auth, email, pass)
+                .then((userCredential) => {
+                    updateProfile(userCredential.user, { displayName: `${first} ${last}` });
+                    alert(`Welcome, ${first}!`);
+                    closeAuth();
+                })
+                .catch((err) => alert(err.message));
+        };
+
+        window.handleLogin = (email, pass) => {
+            signInWithEmailAndPassword(auth, email, pass)
+                .then(() => closeAuth())
+                .catch((err) => alert(err.message));
+        };
+
+        window.logout = () => signOut(auth);
+
+        // ---------- MODAL CONTROLS ----------
+        window.openLogin = () => {
+            document.getElementById("auth-overlay").classList.remove("hidden");
+            document.getElementById("signup-form").classList.add("hidden");
+            document.getElementById("login-form").classList.remove("hidden");
+        };
+
+        window.openSignup = () => {
+            document.getElementById("auth-overlay").classList.remove("hidden");
+            document.getElementById("login-form").classList.add("hidden");
+            document.getElementById("signup-form").classList.remove("hidden");
+        };
+
+        window.closeAuth = () => {
+            document.getElementById("auth-overlay").classList.add("hidden");
+        };
+
+        // ---------- STATE ----------
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("user-info").innerText =
+                    `👋 ${user.displayName || user.email}`;
+                document.getElementById("auth-overlay").classList.add("hidden");
+            } else {
+                document.getElementById("user-info").innerText = "";
+            }
+        });
+    </script>
+</head>
+
+<body class="bg-gray-950 text-white font-sans">
+
+    <!-- AUTH MODAL -->
+    <div id="auth-overlay" class="hidden fixed inset-0 bg-gray-900/90 z-50 flex items-center justify-center p-4">
+        <div class="relative bg-gray-800 p-8 rounded-2xl border-4 border-vibrant w-full max-w-md shadow-2xl shadow-vibrant/30">
+
+            <!-- CLOSE BUTTON -->
+            <button onclick="closeAuth()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">✕</button>
+
+            <h2 class="text-4xl font-extrabold text-neon mb-6 text-center">
+                BOFATCS <span class="text-white">Portal</span>
+            </h2>
+
+            <!-- SIGNUP -->
+            <div id="signup-form">
+                <div class="flex gap-2">
+                    <input type="text" id="fname" placeholder="First Name" class="w-1/2 p-3 mb-4 rounded bg-gray-700">
+                    <input type="text" id="lname" placeholder="Last Name" class="w-1/2 p-3 mb-4 rounded bg-gray-700">
+                </div>
+                <input type="email" id="semail" placeholder="Email" class="w-full p-3 mb-4 rounded bg-gray-700">
+                <input type="password" id="spass" placeholder="Password" class="w-full p-3 mb-4 rounded bg-gray-700">
+
+                <button onclick="handleSignUp(
+                    document.getElementById('semail').value,
+                    document.getElementById('spass').value,
+                    document.getElementById('fname').value,
+                    document.getElementById('lname').value
+                )" class="w-full bg-vibrant hover:bg-pink-600 p-3 rounded font-bold text-lg">
+                    SIGN UP
+                </button>
+
+                <p class="text-sm mt-4 text-center text-gray-400">
+                    Already a member?
+                    <a href="#" class="text-neon" onclick="openLogin()">Login</a>
+                </p>
+            </div>
+
+            <!-- LOGIN -->
+            <div id="login-form" class="hidden">
+                <input type="email" id="lemail" placeholder="Email" class="w-full p-3 mb-4 rounded bg-gray-700">
+                <input type="password" id="lpass" placeholder="Password" class="w-full p-3 mb-4 rounded bg-gray-700">
+
+                <button onclick="handleLogin(
+                    document.getElementById('lemail').value,
+                    document.getElementById('lpass').value
+                )" class="w-full bg-neon text-gray-950 hover:bg-green-400 p-3 rounded font-bold text-lg">
+                    LOGIN
+                </button>
+
+                <p class="text-sm mt-4 text-center text-gray-400">
+                    New here?
+                    <a href="#" class="text-vibrant" onclick="openSignup()">Sign Up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="border-b-2 border-gray-800 p-4 flex justify-between items-center sticky top-0 bg-gray-950 z-40">
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-neon to-vibrant bg-clip-text text-transparent">
+            BOFATCS CLOUD
+        </h1>
+
+        <div class="flex items-center gap-4">
+            <span id="user-info" class="text-sm text-gray-300"></span>
+
+            <button onclick="openLogin()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm">
+                Login
+            </button>
+
+            <button onclick="openSignup()" class="bg-vibrant hover:bg-pink-600 px-4 py-2 rounded text-sm font-bold">
+                Sign Up
+            </button>
+
+            <button onclick="logout()" class="text-xs bg-gray-700 px-3 py-1 rounded">
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="text-center py-20 px-4 bg-gradient-to-b from-gray-900 to-gray-950">
+        <h2 class="text-6xl font-extrabold mb-4">
+            AWS at <span class="text-neon">$0.12</span>/hr
+        </h2>
+        <p class="text-gray-400 text-xl max-w-2xl mx-auto">
+            Lightning fast, absurdly cheap. Unleash your code on the most colorful cloud on earth.
+        </p>
+    </section>
+
+    <!-- JOBS -->
+    <section class="py-16 px-4 bg-gray-900">
+        <h3 class="text-4xl font-bold text-center mb-12 text-vibrant">
+            Join Our <span class="text-white">Colorful Crew</span>
+        </h3>
+
+        <div class="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
+            <div class="bg-gray-800 p-6 rounded-xl border-2 border-neon hover:scale-105 transition-transform">
+                <div class="text-neon text-3xl mb-4">🚀</div>
+                <h4 class="text-2xl font-bold mb-2">CEO Assistant</h4>
+                <p class="text-gray-300 mb-4">Manage the chaos, look fabulous doing it.</p>
+                <button class="bg-neon text-gray-950 px-4 py-2 rounded font-bold w-full">Apply Now</button>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-xl border-2 border-vibrant hover:scale-105 transition-transform">
+                <div class="text-vibrant text-3xl mb-4">🎨</div>
+                <h4 class="text-2xl font-bold mb-2">Vibe Manager</h4>
+                <p class="text-gray-300 mb-4">Keep our Slack colorful and morale high.</p>
+                <button class="bg-vibrant text-white px-4 py-2 rounded font-bold w-full">Apply Now</button>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-xl border-2 border-sky-400 hover:scale-105 transition-transform">
+                <div class="text-sky-400 text-3xl mb-4">💻</div>
+                <h4 class="text-2xl font-bold mb-2">Cloud Wizard</h4>
+                <p class="text-gray-300 mb-4">Fix AWS, but make it neon.</p>
+                <button class="bg-sky-400 text-gray-950 px-4 py-2 rounded font-bold w-full">Apply Now</button>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>
